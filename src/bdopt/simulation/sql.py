@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from ..objectives import ENERGY_UNITS, FunctionReader, MeterReader, Objective, VariableReader
 
@@ -73,6 +74,49 @@ class RunResults:
     def variable(self, key: str, name: str, frequency: str = "Run Period") -> np.ndarray:
         """Values of an output variable for a key at a reporting frequency."""
         return self.series(name, False, key, frequency)[0]
+
+    def timeseries(
+        self, name: str, is_meter: bool, key: str | None = None, frequency: str = "Hourly", year: int = 2001
+    ) -> pd.Series:
+        """Time-stamped values of a meter/variable (empty series if absent).
+
+        The index is a ``DatetimeIndex`` of the *end* of each interval (EnergyPlus convention: ``Hour=24`` is
+        midnight of the next day). Only the weather-file run period is read: warm-up days and design days
+        are left out. ``year`` replaces the year when the run has none (``0``, i.e. a typical-year file).
+        If several keys match (``key=None`` or ``'*'``) their values are summed per timestamp.
+        """
+        q = (
+            "SELECT d.ReportDataDictionaryIndex FROM ReportDataDictionary d "
+            "WHERE lower(d.Name)=lower(?) AND d.IsMeter=? AND d.ReportingFrequency=?"
+        )
+        args: list = [name, 1 if is_meter else 0, frequency]
+        if key not in (None, "*"):
+            q += " AND lower(d.KeyValue)=lower(?)"
+            args.append(key)
+        with self._connect() as con:
+            ids = [r[0] for r in con.execute(q, args).fetchall()]
+            if not ids:
+                return pd.Series(dtype=float)
+            marks = ",".join("?" * len(ids))
+            envs = [r[0] for r in con.execute(
+                "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentType=3").fetchall()]
+            where = f"r.ReportDataDictionaryIndex IN ({marks}) AND (t.WarmupFlag IS NULL OR t.WarmupFlag=0)"
+            if envs:
+                where += f" AND t.EnvironmentPeriodIndex IN ({','.join('?' * len(envs))})"
+            rows = con.execute(
+                "SELECT t.Year, t.Month, t.Day, t.Hour, t.Minute, r.Value FROM ReportData r "
+                f"JOIN Time t ON r.TimeIndex=t.TimeIndex WHERE {where} ORDER BY t.TimeIndex",
+                [*ids, *envs],
+            ).fetchall()
+        if not rows:
+            return pd.Series(dtype=float)
+        a = np.array([[np.nan if v is None else v for v in r] for r in rows], dtype=float)
+        yr = np.where(np.nan_to_num(a[:, 0]) > 0, a[:, 0], year).astype(int)
+        mon = np.where(np.nan_to_num(a[:, 1]) > 0, a[:, 1], 1).astype(int)
+        day = np.where(np.nan_to_num(a[:, 2]) > 0, a[:, 2], 1).astype(int)
+        base = pd.to_datetime({"year": yr, "month": mon, "day": day})
+        idx = base + pd.to_timedelta(np.nan_to_num(a[:, 3]), unit="h") + pd.to_timedelta(np.nan_to_num(a[:, 4]), unit="min")
+        return pd.Series(a[:, 5], index=pd.DatetimeIndex(idx)).groupby(level=0).sum().sort_index()
 
 
 def read_objective(obj: Objective, run: RunResults, warnings: list[str]) -> float:

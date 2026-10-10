@@ -11,6 +11,7 @@ Typical flow::
 """
 
 from . import sampling
+from .calibration import Calibration, CalibrationReport, Channel, split_time
 from .eplus import EnergyPlus, EnergyPlusNotFound, Version, find_installations
 from .evaluator import EnergyPlusEvaluator, Evaluator, FunctionEvaluator, VersionMismatch
 from .idf import IDF, IDFObject
@@ -32,6 +33,9 @@ __version__ = "0.1.0"
 
 __all__ = [
     "IDF",
+    "Calibration",
+    "CalibrationReport",
+    "Channel",
     "CategoryParameter",
     "EnergyPlus",
     "EnergyPlusEvaluator",
@@ -55,5 +59,6 @@ __all__ = [
     "VersionMismatch",
     "find_installations",
     "load_idf",
+    "split_time",
     "sampling",
 ]

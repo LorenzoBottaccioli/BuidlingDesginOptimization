@@ -176,7 +176,7 @@ class EnergyPlusEvaluator(Evaluator):
         self._expand = self.idf.has_class_prefix("HVACTemplate:")
         self._signature = "|".join(
             f"{type(o).__name__}:{o.name}:{o.idf_outputs(self.eplus.version, self.idf)}:{getattr(o, 'unit', '')}:"
-            f"{getattr(o, 'aggregate', '')}:{getattr(o, 'missing', '')}"
+            f"{getattr(o, 'aggregate', '')}:{getattr(o, 'missing', '')}:{getattr(o, 'fingerprint', '')}"
             for o in problem.objectives
         )
         if cache is True:

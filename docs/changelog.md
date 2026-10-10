@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+* {mod}`bdopt.calibration`: calibrate the model of an existing building against measured meters (any resolution,
+  sub-hourly included) and temperature sensors, with training/validation periods and a report ([guide](guide/calibration.md)).
+* `RunResults.timeseries`: time-stamped meter/variable series from `eplusout.sql`.
+
 ## 0.1.0
 
 First release.
