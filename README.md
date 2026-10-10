@@ -174,5 +174,12 @@ python tools/idd_diff.py OLD_ROOT NEW_ROOT                           # what chan
 sphinx-build -W -b html docs docs/_build/html                        # the documentation
 ```
 
-MIT licensed. References for the algorithms: Crombecq et al. (2011), SIAM J. Sci. Comput. 33(4);
+MIT licensed.
+
+**Acknowledgement.** The shape of the public API (parameters with selectors and value descriptors, problems,
+evaluators) is inspired by [BESOS](https://gitlab.com/energyincities/besos) (Evins et al., GPL-3.0). bdopt is an
+independent implementation: no BESOS source code or documentation is included or copied, and BESOS is not a
+dependency.
+
+References for the algorithms: Crombecq et al. (2011), SIAM J. Sci. Comput. 33(4);
 van der Herten et al. (2015), SIAM J. Sci. Comput. 37(2); pymoo (Blank & Deb, 2020).

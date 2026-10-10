@@ -16,3 +16,12 @@ keywords:
   - multi-objective optimization
 authors:
   - name: "bdopt contributors"
+references:
+  - type: software
+    title: "BESOS: a library for Building and Energy Simulation, Optimization and Surrogate-modelling"
+    authors:
+      - family-names: "Evins"
+        given-names: "Ralph"
+      - name: "BESOS contributors"
+    repository-code: "https://gitlab.com/energyincities/besos"
+    notes: "The bdopt API is inspired by BESOS (GPL-3.0). No BESOS code is included in bdopt."
